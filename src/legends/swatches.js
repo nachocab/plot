@@ -74,7 +74,8 @@ function legendItems(scale, {
   columns,
   tickFormat,
   fontVariant = inferFontVariant(scale),
-  // TODO label,
+  explicitLabel,
+  label,
   swatchSize = 15,
   swatchWidth = swatchSize,
   swatchHeight = swatchSize,
@@ -92,6 +93,13 @@ function legendItems(scale, {
         --swatchWidth: ${+swatchWidth}px;
         --swatchHeight: ${+swatchHeight}px;
       `);
+
+  const palette = explicitLabel
+      ? swatches.call(div => div.append("p")
+          .text(label)
+          .style("font-weight", "bold"))
+        .append("div")
+      : swatches;
 
   let extraStyle;
 
@@ -113,7 +121,7 @@ function legendItems(scale, {
       }
     `;
 
-    swatches
+    palette
         .style("columns", columns)
       .selectAll()
       .data(scale.domain)
@@ -139,8 +147,7 @@ function legendItems(scale, {
       }
     `;
 
-    swatches
-      .selectAll()
+    palette.selectAll()
       .data(scale.domain)
       .join("span")
         .attr("class", `${className}-swatch`)
