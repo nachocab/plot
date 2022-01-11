@@ -71,11 +71,10 @@ export function legendSymbols(symbol, {
 }
 
 function legendItems(scale, {
+  label = scale.label,
   columns,
   tickFormat,
   fontVariant = inferFontVariant(scale),
-  explicitLabel,
-  label,
   swatchSize = 15,
   swatchWidth = swatchSize,
   swatchHeight = swatchSize,
@@ -94,10 +93,11 @@ function legendItems(scale, {
         --swatchHeight: ${+swatchHeight}px;
       `);
 
-  const palette = explicitLabel
+  const palette = label
       ? swatches.call(div => div.append("p")
           .text(label)
-          .style("font-weight", "bold"))
+          .style("font-weight", "bold")
+          .style("width", "100%"))
         .append("div")
       : swatches;
 
