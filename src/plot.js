@@ -39,8 +39,10 @@ export function plot(options = {}) {
     if (markChannels.has(mark)) throw new Error("duplicate mark");
     const {index, channels} = mark.initialize();
     for (const [, channel] of channels) {
-      const {scale} = channel;
-      if (scale !== undefined) {
+      const {value, scale} = channel;
+      if (value && value.alias !== undefined) {
+        channel.value = value.alias(markChannels);
+      } else if (scale !== undefined) {
         const scaled = scaleChannels.get(scale);
         const {percent, transform = percent ? x => x * 100 : undefined} = options[scale] || {};
         if (transform != null) channel.value = Array.from(channel.value, transform);
@@ -153,6 +155,7 @@ export class Mark {
     const {facet = "auto", sort, dx, dy, clip} = options;
     const names = new Set();
     this.data = data;
+    this.options = options;
     this.sort = isOptions(sort) ? sort : null;
     this.facet = facet == null || facet === false ? null : keyword(facet === true ? "include" : facet, "facet", ["auto", "include", "exclude"]);
     const {transform} = basic(options);
@@ -195,6 +198,19 @@ export class Mark {
   }
   plot({marks = [], ...options} = {}) {
     return plot({...options, marks: [...marks, this]});
+  }
+  with(Mark, options) {
+    const m = [
+      this,
+      Mark(this.data, {
+        ...this.options,
+        ...Object.fromEntries(this.channels.map(({name}) => [name, ({alias: (channels) => channels.get(this).find(([n]) => n === name)[1].value})])),
+        ...options
+      })
+    ];
+    m.with = () => m; // TODO chained with
+    m.plot = Mark.prototype.plot;
+    return m;
   }
 }
 
